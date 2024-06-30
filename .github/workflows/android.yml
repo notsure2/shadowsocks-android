@@ -44,33 +44,28 @@ jobs:
       run: ./gradlew --no-daemon assembleRelease
       
     - name: Run release
-      run: ./release.sh ${{ github.event.release.tag_name }}
+      run: |
+        ./release.sh ${{ github.ref_name }}
+        mkdir -p release/signed
 
     - name: Sign APK
-      id: sign_app
-      uses: r0adkll/sign-android-release@v1
+      uses: Tlaster/android-sign@v1
       with:
         releaseDirectory: release
+        output: release/signed
         signingKeyBase64: ${{ secrets.SIGNING_KEY }}
         keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
         alias: ${{ secrets.ALIAS }}
       env:
         BUILD_TOOLS_VERSION: "34.0.0"
-        
-    - name: Fix signed release files separator
-      run: |
-        SIGNED_RELEASE_FILES="${{ env.SIGNED_RELEASE_FILES }}"
-        echo "SIGNED_RELEASE_FILES=\"${SIGNED_RELEASE_FILES/:/$'\n'}\"" >> $GITHUB_ENV
 
     - name: Attest APK
       uses: actions/attest-build-provenance@v1
       with:
-        subject-path: |
-          ${{ env.SIGNED_RELEASE_FILES }}
+        subject-path: "release/signed/*"
 
     - name: Upload release files
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: |
-          ${{ env.SIGNED_RELEASE_FILES }}
+        files: "release/signed/*"
