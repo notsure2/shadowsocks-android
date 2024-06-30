@@ -59,6 +59,7 @@ jobs:
         
     - name: Fix signed release files separator
       run: |
+        SIGNED_RELEASE_FILES="${{ env.SIGNED_RELEASE_FILES }}"
         echo "SIGNED_RELEASE_FILES=\"${SIGNED_RELEASE_FILES/:/$'\n'}\"" >> $GITHUB_ENV
 
     - name: Attest APK
