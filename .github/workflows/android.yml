@@ -59,16 +59,17 @@ jobs:
         
     - name: Fix signed release files separator
       run: |
-        SIGNED_RELEASE_FILES="${SIGNED_RELEASE_FILES/:/,}"
-        echo "SIGNED_RELEASE_FILES='${SIGNED_RELEASE_FILES}'" >> $GITHUB_ENV
+        echo "SIGNED_RELEASE_FILES=\"${SIGNED_RELEASE_FILES/:/$'\n'}\"" >> $GITHUB_ENV
 
     - name: Attest APK
       uses: actions/attest-build-provenance@v1
       with:
-        subject-path: ${{ env.SIGNED_RELEASE_FILES }}
+        subject-path: |
+          ${{ env.SIGNED_RELEASE_FILES }}
 
     - name: Upload release files
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/')
       with:
-        files: ${{ env.SIGNED_RELEASE_FILES }}
+        files: |
+          ${{ env.SIGNED_RELEASE_FILES }}
